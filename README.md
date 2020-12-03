@@ -698,29 +698,379 @@ Jim "King" uses "\n" instead of endl.
 
 ### 结构struct
 
+在C++中使用`struct`声明结构体，Golang中也是如此；
 
+例如：
 
+```cpp
+struct inflatable {
+    char name[20];
+    float vol;
+    double price;
+};
+```
 
+上面就声明了一个inflatable的类型；
+
+在C++在，允许省略`struct`关键字，而直接使用`inflatable`创建新的类型，例如：
+
+```cpp
+// c++中声明
+inflatable vincent;
+// C 中声明
+struct inflatable goose;
+```
+
+#### **① 结构体初始化**
+
+可以直接使用初始化列表的方式创建一个struct对象：
+
+```cpp
+// 也可以省略等号
+inflatable guest = {
+  "Tester",
+    1.88,
+    29.9
+};
+```
+
+#### **② 结构体赋值**
+
+虽然在C++中数组直接无法直接赋值，但是结构体可以直接赋值，例如：
+
+struct_assign.cpp
+
+```cpp
+#include <iostream>
+
+struct inflatable {
+    char name[20];
+    float vol;
+    double price;
+};
+
+int main() {
+    using namespace std;
+    inflatable bouquet = {
+            "sunflowers",
+            0.20,
+            12.49
+    };
+
+    cout << "bouquet: " << bouquet.name << " for " << bouquet.price << "$" << endl;
+
+    inflatable choice;
+    choice = bouquet;
+    cout << "choice: " << choice.name << " for " << choice.price << "$" << endl;
+
+    cout << "change bouquet's price" << endl;
+    bouquet.price = 29.99;
+
+    cout << "bouquet price: " << bouquet.price << ", choice price: " << choice.price << endl;
+}
+```
+
+最终输出为：
+
+```cpp
+#include <iostream>
+
+struct inflatable {
+    char name[20];
+    float vol;
+    double price;
+};
+
+int main() {
+    using namespace std;
+    inflatable bouquet = {
+            "sunflowers",
+            0.20,
+            12.49
+    };
+
+    cout << "bouquet: " << bouquet.name << " for " << bouquet.price << "$" << endl;
+
+    inflatable choice;
+    choice = bouquet;
+    cout << "choice: " << choice.name << " for " << choice.price << "$" << endl;
+
+    cout << "change bouquet's price" << endl;
+    bouquet.price = 29.99;
+    cout << "bouquet price: " << bouquet.price << ", choice price: " << choice.price << endl;
+
+    cout << "change bouquet's name" << endl;
+    bouquet.name[0] = 'S';
+    cout << "bouquet name: " << bouquet.name << ", choice name: " << choice.name << endl;
+}
+```
+
+最终输出为：
+
+```
+bouquet: sunflowers for 12.49$
+choice: sunflowers for 12.49$
+change bouquet's price
+bouquet price: 29.99, choice price: 12.49
+change bouquet's name
+bouquet name: Sunflowers, choice name: sunflowers
+```
+
+<red>**修改了bouquet之后，choice变量中的值并未被修改！（实际上在赋值时，新的struct使用赋值struct的数据创建了一个新的struct！）**</font>
+
+#### **③ struct中的位字段**
+
+和C类似，C++中也允许指定占用特定位数的结构成员，这使得创建和某个硬件寄存器对应的数据结构非常方便；
+
+使用例子如下：
+
+bit_in_struct.cpp
+
+```cpp
+#include <iostream>
+
+struct t_register {
+    unsigned int SN: 4;
+    // 字节对齐，这4个bit未被使用！
+    unsigned int : 4;
+    bool goodIn: 1;
+    bool goodOut: 1;
+};
+
+int main() {
+    using namespace std;
+
+    t_register tr = {0b10001110, true, false};
+    if (tr.goodIn) {
+        cout << "SN: " << tr.SN << ", goodIn: " << tr.goodIn << ", goodOut: " << tr.goodOut << endl;
+    }
+}
+```
+
+在结构体的声明中，可以省略具体位的名称（此时会省略这些位，但是会使用这些位提供间距），同时使用`:`指定各个字段占用的位数；
+
+在上例中的输出如下：
+
+```cpp
+SN: 14, goodIn: 1, goodOut: 0
+```
 
 <br/>
 
 ### 共用体union
 
+共用体是一种数据结构，能够存储多种不同的数据类型（但是在同一时刻只能存储多个声明类型中的一个）！
 
+和struct的声明类似，共用体使用`union`关键字声明，例如：
 
+```cpp
+union one4all {
+    int int_val;
+    long long_val;
+    double double_val;
+};
+```
 
+此后可以使用one4all来存储int、long或double，但是只能是不同的时间；
+
+例如：
+
+```cpp
+one4all pail;
+pail.int_val = 15;
+cout << pail.int_val;
+pail.double_val = 15.2;
+cout << pail.double_val;
+```
+
+例如上面的例子，pail有时是int、有时是double，但是同时只能存在一个值（所有类型共享同一个内存空间）；
+
+<red>**而共用体的长度即为最大成员占用空间的大小**</font>
+
+>   **共用体的使用场景是：**
+>
+>   当数据使用两种或更多种格式时，可节省空间；
+>
+>   所以，共用体常用于节省内存的场景，例如：操作系统数据结构、硬件数据结构等；
 
 <br/>
 
-### 枚举
+### 枚举enum
 
+C++中的enum提供了另一种创建符合常量的方法，可以代替const，但是enum会提供新的类型，这一点和通常的const有所不同；
 
+#### **① 声明enum**
 
+使用enum和struct类似，例如下面：
 
+```cpp
+enum spectrum {
+  red, orange, yellow, green, blue  
+};
+```
+
+上面的语句完成了：
+
+-   声明的新的enum类型spectrum；
+-   将red、orange等符号作为spectrum的常量，对应数值0~4；
+
+在默认情况下，会将整数值赋给枚举：第一个为0，第二个为1…；同时可以显式的指定整数值来覆盖默认值；
+
+#### **② 使用enum**
+
+可以使用声明的enum类型创建变量，例如：
+
+```cpp
+spectrum band;
+```
+
+在不进行强制类型转换的情况下，只能将定义枚举时创建的枚举变量赋值给这些枚举变量，如下：
+
+```cpp
+// 合法
+band = blue;
+// 非法
+band = 2000;
+```
+
+>   对于不同的编译器，上面的非法可能是警告、也有可能被认为是一个错误而拒绝编译！
+
+#### **③ enum运算**
+
+对于enum而言，仅仅定义了赋值运算符，而未定义算数运算：
+
+```cpp
+// 合法
+band = orange;
+// 非法
+++band;
+// 在某些编译器实现中非法
+band = orange + red;
+```
+
+虽然枚举是整型类型，可被提升为int类型，但是int是不能自动转换为枚举类型的：
+
+```cpp
+// 合法，blue提升为int
+int color = blue;
+// 非法，int不能转换为枚举类型
+band = 3;
+// 合法
+color = 3 + red;
+```
+
+由于enum可以提升为int类型，所以下面的代码虽然是错误的，但是错误的原因在于类型不匹配，而非无法进行数值运算：
+
+```cpp
+// 下面的orange + red在运算时被转换为int类型；
+// 但是赋值的是spectrum类型，所以会产生错误；
+// 如果band改为int类型，是合法的；
+spectrum band = orange + red;
+```
+
+#### **④ enum转换**
+
+如果int的值是有效的，可以通过强制类型转换将其赋值为一个enum类型：
+
+```cpp
+band = spectrum(3);
+```
+
+>   **注：**
+>
+>   **如果将一个非法的值赋值给一个enum，结果是不确定的！**
+
+#### **⑤ 设置enum的值**
+
+可以在声明enum时指定枚举的值（而非默认的0~n）：
+
+```cpp
+enum bit {
+    one = 1,
+    two = 2,
+    four = 4,
+    eight = 8
+};
+```
+
+>   **指定的值必须为整数；**
+
+也可以仅指定一部分数值，其后一个未指定的枚举量比前一个大1：
+
+```cpp
+enum bigstep {
+    first, // 0
+    second = 100,
+    third // 101
+}
+```
+
+最后，可以创建多个值相同的枚举量：
+
+```cpp
+enum {
+    zero, // 0
+    null = 0,
+    one, // 1
+    number_one = 1 // 1
+}
+```
+
+>   枚举可以使用long 或者long long类型的值；
+
+#### **⑥ enum的取值范围**
+
+对于每个enum而言，都有取值范围，通过强制类型转换可以将取值范围中的任意整数赋值给枚举变量（即使这个值未被声明为一个枚举值）：
+
+```cpp
+enum bits {
+    one = 1,
+    two = 2,
+    four = 4,
+    eight = 8
+};
+bits myflag = bits(6);
+```
+
+上面的代码也是合法的，尽管6不是枚举值，但是其位于枚举的取值范围内；
+
+>   取值范围的定义如下：
+>
+>   **① 取值上限**
+>
+>   取值范围上限 = 大于枚举值中最大值的最小二次幂 - 1；
+>
+>   例如下面的例子中：
+>
+>   ```cpp
+>   enum bigstep {
+>       first, // 0
+>       second = 100,
+>       third // 101
+>   };
+>   ```
+>
+>   最大值为101，所以enum的取值上限为127；
+>
+>   **② 取值下限**
+>
+>   如果enum中最小值不小于0，则下限为0；
+>
+>   否则：
+>
+>   取值范围下限 = 小于枚举值中最小值的最大二次幂 + 1；
+>
+>   例如，最小枚举值为-6，则下限为-7；
+
+最后，选择使用多大的空间存放enum由各个编译器决定：取值范围较小的可能使用一个字节甚至更少的空间，而对于包含long类型的枚举则使用4个字节；
 
 <br/>
 
-### 指针
+### 指针pointer
+
+
+
+
 
 
 

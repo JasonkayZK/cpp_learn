@@ -1,16 +1,8 @@
 #include <iostream>
 #include <cstring>
 
-struct inflatable {
-    char name[20];
-    float vol;
-    double price;
-};
-
 int main() {
     using namespace std;
-
-    cout << R"+*(Jim "King" uses "\n" instead of endl.)+*" << '\n';
 
 //    char* c1;
 //    cout << *c1 << endl;
